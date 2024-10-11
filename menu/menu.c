@@ -6,6 +6,8 @@
 #include "../math/integral/integs.c"
 #include "../math/integral/integs.h"
 
+#define AMOUNT_OF_TABS 2  //При добавлении новых вкладок, нужно не забывать изменить это значение
+
 typedef void(*pointer_func)();  //Тип указателя на функцию (Чтобы каждый раз это не писать)
 
 typedef struct Option{
@@ -32,7 +34,7 @@ typedef struct Menu{
 
 void option_test_function(){    //Тестовая функция для вызова опциями. Тут например могут быть функции из других файлов где у нас есть расчет интегралов 
     printf("This function was called using option!\n");
-    printf("calc results: %d\n",integ_left_parts(1,10,100));
+    printf("calc results: %lf\n",integ_left_parts(1,10,100));
 }
 
 void display_menu(menu *pM){    //Функция вывода меню
@@ -93,7 +95,6 @@ void open_next_tab(menu *pM, tab *pNewTab){ //Открывает следующ�
 
 int create_menu(){
     int input = 0;
-    const int amount_of_tabs = 3; //При добавлении новых вкладок, нужно не забывать изменить это значение 
 
     option **options_list1 = NULL; //Создание опций для вкладки
     options_list1 = malloc(sizeof(option*)*4);
@@ -118,7 +119,7 @@ int create_menu(){
     pIntegTab = create_tab("Численное интегрирование",pDefaultTab,4, options_list2);
     pDefaultTab->options_list[0]->next_tab = pIntegTab;  //Завершаем связть между вкладками (До этого там был поинтер NULL)
 
-
+    
 
     //Где то тут нужно прописывать все остальные вкалдки
 
@@ -130,10 +131,10 @@ int create_menu(){
     pM->display_tab = display_menu; //Настройка меню
     pM->is_runnging = true;
     pM->current_tab = malloc(sizeof(tab));
-    pM->list_of_tabs = malloc(sizeof(tab*)*amount_of_tabs);
+    pM->list_of_tabs = malloc(sizeof(tab*)*AMOUNT_OF_TABS);
     pM->list_of_tabs[0] = pDefaultTab;
     pM->list_of_tabs[1] = pIntegTab;
-    pM->amount_of_tabs = amount_of_tabs;    //Та же херь, что и с количеством опций во вкладках, длину динамического массива тупа не найти
+    pM->amount_of_tabs = AMOUNT_OF_TABS;    //Та же херь, что и с количеством опций во вкладках, длину динамического массива тупа не найти
     pM->current_tab = pM->list_of_tabs[0];
     pM->return_button = create_option("Назад", open_prev_tab);
     
