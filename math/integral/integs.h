@@ -1,9 +1,9 @@
 #ifndef INTEGRAL
 #define INTEGRAL
 
-double integ_left_parts(float min, float max, int accuracy);
-double integ_right_parts(float min, float max, int accuracy);
-double integ_trapeze(float min, float max, int accuracy);
-double integ_left_parts(float min, float max, int accuracy);
+double integ_left_parts (double min, double max, int n);
+double integ_right_parts(double min, double max, int n);
+double integ_trapeze    (double min, double max, int n);
+double integ_left_parts (double min, double max, int n);
 
 #endif

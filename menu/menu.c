@@ -6,31 +6,9 @@
 #include "../math/integral/integs.c"
 #include "../math/integral/integs.h"
 
-#define AMOUNT_OF_TABS 2  //При добавлении новых вкладок, нужно не забывать изменить это значение
+#define AMOUNT_OF_TABS 4 //При добавлении новых вкладок, нужно не забывать изменить это значение
 
-typedef void(*pointer_func)();  //Тип указателя на функцию (Чтобы каждый раз это не писать)
-
-typedef struct Option{
-    char text[100]; //Текст опции
-    struct Tab *next_tab;
-    pointer_func action;    //Ссылка на функцию которую опция вызывает
-} option;
-
-typedef struct Tab{   
-    char text[100]; //Текст вкладки
-    struct Tab *previous_tab; //Предыдущая вкладка(Для операции "Назад")
-    int amount_of_options;  //Количество опций
-    option **options_list;  //Список опций
-} tab;
-
-typedef struct Menu{
-    bool is_runnging;   //Вот это должно переводиться в состояние "fakse" когда из начальной вкладки происводиться операция "Назад", но чет дааааа, не работает ничего у меня
-    int amount_of_tabs; //Количество вкладок
-    tab **list_of_tabs; //Массив со всеми вкладками
-    tab *current_tab;   //Текущая вкладка
-    pointer_func display_tab;   //Ссылка на функцию отображабщую меню
-    option *return_button;
-} menu;
+int tab_id_counter = 0;
 
 void option_test_function(){    //Тестовая функция для вызова опциями. Тут например могут быть функции из других файлов где у нас есть расчет интегралов 
     printf("This function was called using option!\n");
@@ -63,7 +41,7 @@ option* create_option(char *text, pointer_func action){ //Создание но�
     option *pO = NULL;
     pO = malloc(sizeof(option));
     strcpy(pO->text, text);
-    pO->action = action;
+    pO->action = (pointer_func) action;
     pO->next_tab = NULL;
     return pO;
 }
@@ -71,10 +49,15 @@ option* create_option(char *text, pointer_func action){ //Создание но�
 tab* create_tab(char *text, tab *previous_tab, int amount_of_options, option **options_list){   //Создание новой вкладки
     tab *pT = NULL;
     pT = malloc(sizeof(tab));
+    pT->id = tab_id_counter;
+    tab_id_counter++;
     strcpy(pT->text, text);
     pT->previous_tab = previous_tab ? previous_tab : NULL;
     pT->amount_of_options = amount_of_options;
     pT->options_list = options_list;
+    for (int i = 0; i < amount_of_options;i++){
+        options_list[i]->connected_tab = pT;
+    }
     return pT;
 }
 
@@ -93,37 +76,57 @@ void open_next_tab(menu *pM, tab *pNewTab){ //Открывает следующ�
     pM->display_tab(pM);
 }
 
-int create_menu(){
-    int input = 0;
-
-    option **options_list1 = NULL; //Создание опций для вкладки
-    options_list1 = malloc(sizeof(option*)*4);
-
-    options_list1[0] = create_option("Интегралы", open_next_tab);
-    options_list1[1] = create_option("Дифференциальные уравнения", open_next_tab);
-    options_list1[2] = create_option("Системы алгебрарических уравнений", open_next_tab);
-    options_list1[3] = create_option("НУ", open_next_tab);
-
+menu* create_menu(){
     tab *pDefaultTab = NULL; //Создание новой вкладки
-    pDefaultTab = create_tab("Выберите тип решаемой задачи",NULL,4, options_list1);    //Текст вкладки, предыдущая вкладка, количество опций, список опций (Пришлось пихнуть отдельно количество опций т.к. sizeof() не работает с динамическими массивами и в си просто нет нормального способа найти длину такого массива)
+    tab *pConstIntegTab = NULL;   //Для теста перехода между вкладками (Опция 1 вкладки "pDefaultTab")
+    tab *pConstDiffTab = NULL;
+    tab *pConstSLETab = NULL;
+    tab *pIntegTab = NULL;
+    tab *pDiffTab = NULL;   //Для теста перехода между вкладками (Опция 1 вкладки "pDefaultTab")
+
+    option **defult_tab_option_list = NULL; //Создание опций для вкладки
+    option **options_list1 = NULL;  
+    option **options_list2 = NULL;
+    option **options_list3 = NULL;
+
+    defult_tab_option_list = malloc(sizeof(option*)*4);
+    defult_tab_option_list[0] = create_option("Интегралы", open_next_tab);
+    defult_tab_option_list[1] = create_option("Дифференциальные уравнения", open_next_tab);
+    defult_tab_option_list[2] = create_option("СЛАУ", open_next_tab);
+    defult_tab_option_list[3] = create_option("НУ", open_next_tab);
+    pDefaultTab = create_tab("Выберите тип решаемой задачи",NULL,4, defult_tab_option_list);    //Текст вкладки, предыдущая вкладка, количество опций, список опций (Пришлось пихнуть отдельно количество опций т.к. sizeof() не работает с динамическими массивами и в си просто нет нормального способа найти длину такого массива)
     pDefaultTab->previous_tab = NULL;
 
-    option **options_list2 = NULL;  //Опшан лист для второй вкладки
+    options_list1 = malloc(sizeof(option*)*3);
+    options_list1[0] = create_option("Интегрирование с постоянным шагом",open_next_tab);
+    options_list1[1] = create_option("Интегрирование с переменным шагом", open_next_tab);
+    options_list1[2] = create_option("Кратный интеграл", open_next_tab);
+    pIntegTab = create_tab("Численное интегрирование",pIntegTab,3,options_list1);
+
     options_list2 = malloc(sizeof(option*)*4);
-    options_list2[0] = create_option("Метод прямоугольников левых частей", option_test_function);
-    options_list2[1] = create_option("Метод прямоугольников правых частей", option_test_function);
-    options_list2[2] = create_option("Метод трапеций", option_test_function);
-    options_list2[3] = create_option("Метод парабол", option_test_function);
+    options_list2[0] = create_option("Метод прямоугольников левых частей",(pointer_func) integ_left_parts);
+    options_list2[1] = create_option("Метод прямоугольников правых частей", (pointer_func) integ_right_parts);
+    options_list2[2] = create_option("Метод трапеций", (pointer_func) integ_trapeze);
+    options_list2[3] = create_option("Метод парабол", (pointer_func) integ_parabola);
+    pConstIntegTab = create_tab("Постоянный шаг",pDefaultTab,4, options_list2);
 
-    tab *pIntegTab = NULL;   //Для теста перехода между вкладками (Опция 1 вкладки "pDefaultTab")
-    pIntegTab = create_tab("Численное интегрирование",pDefaultTab,4, options_list2);
-    pDefaultTab->options_list[0]->next_tab = pIntegTab;  //Завершаем связть между вкладками (До этого там был поинтер NULL)
+    options_list3 = malloc(sizeof(option*)*4);
+    options_list3[0] = create_option("1", option_test_function);
+    options_list3[1] = create_option("2", option_test_function);
+    options_list3[2] = create_option("3", option_test_function);
+    options_list3[3] = create_option("4", option_test_function);
+    pDiffTab = create_tab("Дифференциальные уравнения",pDefaultTab,4, options_list3);
 
-    
+
 
     //Где то тут нужно прописывать все остальные вкалдки
 
 
+
+    pDefaultTab->options_list[0]->next_tab = pIntegTab;  //Завершаем связть между вкладками (До этого там был поинтер NULL)
+    pDefaultTab->options_list[1]->next_tab = pDiffTab;
+
+    pIntegTab->options_list[0]->next_tab = pConstIntegTab;
 
     menu *pM = NULL; //Создание меню (По сути контроллер, который отвечает за то какая вкладка должна отображаться, и в какую передается пользовательский инпут)
     pM = malloc(sizeof(menu));
@@ -132,14 +135,20 @@ int create_menu(){
     pM->is_runnging = true;
     pM->current_tab = malloc(sizeof(tab));
     pM->list_of_tabs = malloc(sizeof(tab*)*AMOUNT_OF_TABS);
-    pM->list_of_tabs[0] = pDefaultTab;
-    pM->list_of_tabs[1] = pIntegTab;
+    pM->list_of_tabs[pDefaultTab->id] = pDefaultTab;
+    pM->list_of_tabs[pIntegTab->id]= pIntegTab;
+    pM->list_of_tabs[pDiffTab->id] = pDiffTab;
+    pM->list_of_tabs[pConstIntegTab->id] = pConstIntegTab;
     pM->amount_of_tabs = AMOUNT_OF_TABS;    //Та же херь, что и с количеством опций во вкладках, длину динамического массива тупа не найти
     pM->current_tab = pM->list_of_tabs[0];
     pM->return_button = create_option("Назад", open_prev_tab);
-    
-    pM->display_tab(pM);    //Вывод дефолтной вкладки
 
+    return pM;
+}
+
+void run_menu(menu *pM){
+    int input = 0;
+    pM->display_tab(pM);    //Вывод дефолтной вкладки
     while ( pM->is_runnging )
     {
         printf("Выберите опцию (%d - %d): ", 0, pM->current_tab->amount_of_options);
@@ -155,7 +164,8 @@ int create_menu(){
         }
 
         if (pM->current_tab->options_list[input]->next_tab == NULL){
-            pM->current_tab->options_list[input]->action();   //Вызов какой то функции, которая привязана к опции
+            calc_func call = (calc_func) pM->current_tab->options_list[input]->action;   //Вызов какой то функции, которая привязана к опции
+            call(1,10,100);
         }else{
             pM->current_tab->options_list[input]->action(pM, pM->current_tab->options_list[input]->next_tab);   //Вызов функции перехода между вкладками
         }

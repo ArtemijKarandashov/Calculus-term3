@@ -1,6 +1,7 @@
-#include "menu/menu.h"
-#include "menu/menu.c"
+#include "menu/gtk_main_menu.h"
+#include "menu/gtk_main_menu.c"
 
-int main(){
-    create_menu();
+int main(int    argc,
+         char **argv){
+    gtk_run_menu(argc,argv);
 }
