@@ -3,10 +3,14 @@
 #include <string.h>
 #include <stdbool.h>
 #include "menu.h"
-#include "../math/integral/integs.c"
-#include "../math/integral/integs.h"
+#include "../math/integral/ConstIntegs.c"
+#include "../math/integral/ConstIntegs.h"
+#include "../math/integral/DynamicIntegs.c"
+#include "../math/integral/DynamicIntegs.h"
 
-#define AMOUNT_OF_TABS 4 //При добавлении новых вкладок, нужно не забывать изменить это значение
+#define AMOUNT_OF_TABS 5 //При добавлении новых вкладок, нужно не забывать изменить это значение
+#define CONST_INTEG_TAB     0
+#define DYNAMIC_INTEG_TAB   1
 
 int tab_id_counter = 0;
 
@@ -46,11 +50,12 @@ option* create_option(char *text, pointer_func action){ //Создание но�
     return pO;
 }
 
-tab* create_tab(char *text, tab *previous_tab, int amount_of_options, option **options_list){   //Создание новой вкладки
+tab* create_tab(char *text, tab *previous_tab, int amount_of_options, option **options_list, int type){   //Создание новой вкладки
     tab *pT = NULL;
     pT = malloc(sizeof(tab));
     pT->id = tab_id_counter;
     tab_id_counter++;
+    pT->tab_type = type;
     strcpy(pT->text, text);
     pT->previous_tab = previous_tab ? previous_tab : NULL;
     pT->amount_of_options = amount_of_options;
@@ -77,45 +82,52 @@ void open_next_tab(menu *pM, tab *pNewTab){ //Открывает следующ�
 }
 
 menu* create_menu(){
-    tab *pDefaultTab = NULL; //Создание новой вкладки
-    tab *pConstIntegTab = NULL;   //Для теста перехода между вкладками (Опция 1 вкладки "pDefaultTab")
-    tab *pConstDiffTab = NULL;
-    tab *pConstSLETab = NULL;
-    tab *pIntegTab = NULL;
-    tab *pDiffTab = NULL;   //Для теста перехода между вкладками (Опция 1 вкладки "pDefaultTab")
+    tab *pDefaultTab        = NULL; //Создание новой вкладки
+    tab *pIntegTab          = NULL;
+    tab *pConstIntegTab     = NULL;
+    tab *pDynaicIntegTab    = NULL;
+    tab *pDiffTab           = NULL;
+    tab *pConstDiffTab      = NULL;
+    tab *pConstSLETab       = NULL;
 
-    option **defult_tab_option_list = NULL; //Создание опций для вкладки
-    option **options_list1 = NULL;  
-    option **options_list2 = NULL;
-    option **options_list3 = NULL;
+    option **defult_tab_option_list     = NULL; //Создание опций для вкладки
+    option **integ_options_list         = NULL;  
+    option **const_integ_options_list   = NULL;
+    option **dynamic_integ_options_list = NULL;
+    option **diff_options_list          = NULL;
 
     defult_tab_option_list = malloc(sizeof(option*)*4);
     defult_tab_option_list[0] = create_option("Интегралы", open_next_tab);
     defult_tab_option_list[1] = create_option("Дифференциальные уравнения", open_next_tab);
     defult_tab_option_list[2] = create_option("СЛАУ", open_next_tab);
     defult_tab_option_list[3] = create_option("НУ", open_next_tab);
-    pDefaultTab = create_tab("Выберите тип решаемой задачи",NULL,4, defult_tab_option_list);    //Текст вкладки, предыдущая вкладка, количество опций, список опций (Пришлось пихнуть отдельно количество опций т.к. sizeof() не работает с динамическими массивами и в си просто нет нормального способа найти длину такого массива)
+    pDefaultTab = create_tab("Выберите тип решаемой задачи",NULL, 4, defult_tab_option_list, -1);    //Текст вкладки, предыдущая вкладка, количество опций, список опций (Пришлось пихнуть отдельно количество опций т.к. sizeof() не работает с динамическими массивами и в си просто нет нормального способа найти длину такого массива)
     pDefaultTab->previous_tab = NULL;
 
-    options_list1 = malloc(sizeof(option*)*3);
-    options_list1[0] = create_option("Интегрирование с постоянным шагом",open_next_tab);
-    options_list1[1] = create_option("Интегрирование с переменным шагом", open_next_tab);
-    options_list1[2] = create_option("Кратный интеграл", open_next_tab);
-    pIntegTab = create_tab("Численное интегрирование",pIntegTab,3,options_list1);
+    integ_options_list = malloc(sizeof(option*)*3);
+    integ_options_list[0] = create_option("Интегрирование с постоянным шагом",open_next_tab);
+    integ_options_list[1] = create_option("Интегрирование с переменным шагом", open_next_tab);
+    integ_options_list[2] = create_option("Кратный интеграл", open_next_tab);
+    pIntegTab = create_tab("Численное интегрирование", pIntegTab, 3,integ_options_list, -1);
 
-    options_list2 = malloc(sizeof(option*)*4);
-    options_list2[0] = create_option("Метод прямоугольников левых частей",(pointer_func) integ_left_parts);
-    options_list2[1] = create_option("Метод прямоугольников правых частей", (pointer_func) integ_right_parts);
-    options_list2[2] = create_option("Метод трапеций", (pointer_func) integ_trapeze);
-    options_list2[3] = create_option("Метод парабол", (pointer_func) integ_parabola);
-    pConstIntegTab = create_tab("Постоянный шаг",pDefaultTab,4, options_list2);
+    const_integ_options_list = malloc(sizeof(option*)*4);
+    const_integ_options_list[0] = create_option("Метод прямоугольников левых частей",(pointer_func) integ_left_parts);
+    const_integ_options_list[1] = create_option("Метод прямоугольников правых частей", (pointer_func) integ_right_parts);
+    const_integ_options_list[2] = create_option("Метод трапеций", (pointer_func) integ_trapeze);
+    const_integ_options_list[3] = create_option("Метод парабол", (pointer_func) integ_parabola);
+    pConstIntegTab = create_tab("Постоянный шаг", pIntegTab, 4, const_integ_options_list, CONST_INTEG_TAB);
 
-    options_list3 = malloc(sizeof(option*)*4);
-    options_list3[0] = create_option("1", option_test_function);
-    options_list3[1] = create_option("2", option_test_function);
-    options_list3[2] = create_option("3", option_test_function);
-    options_list3[3] = create_option("4", option_test_function);
-    pDiffTab = create_tab("Дифференциальные уравнения",pDefaultTab,4, options_list3);
+    dynamic_integ_options_list  = malloc(sizeof(option*)*2);
+    dynamic_integ_options_list[0] = create_option("Двойной пересчет (Медленный)",(pointer_func) integ_dynamic_slow);
+    dynamic_integ_options_list[1] = create_option("Быстрый алгоритм", (pointer_func) integ_dynamic_fast);
+    pDynaicIntegTab = create_tab("Переменный шаг", pIntegTab, 2, dynamic_integ_options_list, DYNAMIC_INTEG_TAB);
+
+    diff_options_list = malloc(sizeof(option*)*4);
+    diff_options_list[0] = create_option("1", option_test_function);
+    diff_options_list[1] = create_option("2", option_test_function);
+    diff_options_list[2] = create_option("3", option_test_function);
+    diff_options_list[3] = create_option("4", option_test_function);
+    pDiffTab = create_tab("Дифференциальные уравнения", pDefaultTab, 4, diff_options_list,  -1);
 
 
 
@@ -125,8 +137,8 @@ menu* create_menu(){
 
     pDefaultTab->options_list[0]->next_tab = pIntegTab;  //Завершаем связть между вкладками (До этого там был поинтер NULL)
     pDefaultTab->options_list[1]->next_tab = pDiffTab;
-
     pIntegTab->options_list[0]->next_tab = pConstIntegTab;
+    pIntegTab->options_list[1]->next_tab = pDynaicIntegTab;
 
     menu *pM = NULL; //Создание меню (По сути контроллер, который отвечает за то какая вкладка должна отображаться, и в какую передается пользовательский инпут)
     pM = malloc(sizeof(menu));
@@ -139,6 +151,7 @@ menu* create_menu(){
     pM->list_of_tabs[pIntegTab->id]= pIntegTab;
     pM->list_of_tabs[pDiffTab->id] = pDiffTab;
     pM->list_of_tabs[pConstIntegTab->id] = pConstIntegTab;
+    pM->list_of_tabs[pDynaicIntegTab->id] = pDynaicIntegTab;
     pM->amount_of_tabs = AMOUNT_OF_TABS;    //Та же херь, что и с количеством опций во вкладках, длину динамического массива тупа не найти
     pM->current_tab = pM->list_of_tabs[0];
     pM->return_button = create_option("Назад", open_prev_tab);
