@@ -3,6 +3,7 @@
 #define MENU
 
 typedef double(*calc_func)(double min, double max, int n);
+typedef double(*dynamic_integ)(double min, double max, double acc);
 typedef void(*pointer_func)();  //Тип указателя на функцию (Чтобы каждый раз это не писать)
 
 typedef struct Option{
@@ -17,6 +18,7 @@ typedef struct Tab{
     struct Tab *previous_tab; //Предыдущая вкладка(Для операции "Назад")
     int amount_of_options;  //Количество опций
     int id;
+    int tab_type;
     option **options_list;  //Список опций
 } tab;
 
@@ -34,7 +36,7 @@ void option_test_function();   //Тестовая функция для вызо
 void display_menu(menu *pM);   //Функция вывода меню
 void free_menu(menu *pM);   //Убейте меня
 option* create_option(char *text, pointer_func action); //Создание новой опции
-tab* create_tab(char *text, tab *previous_tab, int amount_of_options, option **options_list);   //Создание новой вкладки
+tab* create_tab(char *text, tab *previous_tab, int amount_of_options, option **options_list, int type);   //Создание новой вкладки
 void open_prev_tab(menu *pM); //Сломаная кнопка возврата
 void open_next_tab(menu *pM, tab *pNewTab); //Открывает следующую вкладку
 menu* create_menu();
