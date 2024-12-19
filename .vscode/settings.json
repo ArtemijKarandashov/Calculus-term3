@@ -1,0 +1,14 @@
+{
+    "C_Cpp.errorSquiggles": "enabled",
+    "files.associations": {
+        "integs.h": "c",
+        "menu.h": "c",
+        "stdlib.h": "c",
+        "stdbool.h": "c",
+        "string.h": "c",
+        "gtk_submenu_tabs.h": "c",
+        "integfunc.h": "c",
+        "difffunc.h": "c",
+        "multipleintegs.h": "c"
+    }
+}
