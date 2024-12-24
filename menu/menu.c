@@ -4,13 +4,16 @@
 #include <stdbool.h>
 #include "menu.h"
 
+#include "../tools/data_saver.c"
+#include "../tools/data_saver.h"
+
 #include "../math/integral/IntegFunc.c"
 #include "../math/integral/IntegFunc.h"
 #include "../math/diff/DiffFunc.c"
 #include "../math/diff/DiffFunc.h"
 
-#include "../tools/data_saver.c"
-#include "../tools/data_saver.h"
+#include "../math/misc/fact.c"
+#include "../math/misc/fact.h"
 
 #include "../math/integral/ConstIntegs.c"
 #include "../math/integral/ConstIntegs.h"
@@ -26,13 +29,22 @@
 #include "../math/diff/EulerSys.c"
 #include "../math/diff/EulerSys.h"
 
-#define AMOUNT_OF_TABS      8 //При добавлении новых вкладок, нужно не забывать изменить это значение
+#include "../math/approx/Cheb.c"
+#include "../math/approx/Cheb.h"
+
+#include "../math/notlinear/Diho.c"
+#include "../math/notlinear/Chord.c"
+
+#define AMOUNT_OF_TABS      9 //При добавлении новых вкладок, нужно не забывать изменить это значение
 #define CONST_INTEG_TAB     0
 #define DYNAMIC_INTEG_TAB   1
 #define MULTIPLE_INTEG_TAB  2
 #define DIFF_TAB            3
 #define DIFF_SIMPLE_TAB     4
 #define DIFF_SYSTEM_TAB     5
+#define APPROX_TAB          6
+#define APPROX_CHEB_TAB     7
+#define NOTLINEAR_TAB       8
 
 int tab_id_counter = 0;
 
@@ -113,7 +125,9 @@ menu* create_menu(){
     tab *pDiffSimpleTab     = NULL;
     tab *pDiffSystemTab     = NULL;
     tab *pConstDiffTab      = NULL;
-    tab *pConstSLETab       = NULL;
+    tab *pApproxTab         = NULL;
+    tab *pApproxChebTab     = NULL;
+    tab *pNotLinearTab      = NULL;
 
     option **defult_tab_option_list     = NULL; //Создание опций для вкладки
     option **integ_options_list         = NULL;  
@@ -123,6 +137,9 @@ menu* create_menu(){
     option **diff_options_list          = NULL;
     option **diff_simple_options_list   = NULL;
     option **diff_system_options_list   = NULL;
+    option **approx_options_list        = NULL;
+    option **approx_cheb_option_list    = NULL;
+    option **notlinear_option_list      = NULL;
 
     defult_tab_option_list = malloc(sizeof(option*)*4);
     defult_tab_option_list[0] = create_option("Интегралы", open_next_tab);
@@ -168,19 +185,37 @@ menu* create_menu(){
     diff_system_options_list[0] = create_option("Систеама, решенная методом Эйлера", (pointer_func) euler_system);
     pDiffSystemTab = create_tab("Системы дифференциальных уравнений", pDiffTab, 1, diff_system_options_list,  DIFF_SYSTEM_TAB);
 
+    approx_options_list = malloc(sizeof(option*));
+    approx_options_list[0] = create_option("Метод Чебышева", open_next_tab);
+    pApproxTab = create_tab("Приблизительные вычисления элементарных функций", pDefaultTab, 1, approx_options_list,  -1);
+    
+    approx_cheb_option_list = malloc(sizeof(option*) * 3);
+    approx_cheb_option_list[0] = create_option("Экспонента методом Чебышева", (pointer_func) chebyshev_exp);
+    approx_cheb_option_list[1] = create_option("Синус методом Чебышева", (pointer_func) chebyshev_sin);
+    approx_cheb_option_list[2] = create_option("Обратный квадратный корень методом Чебышева", (pointer_func) chebyshev_inv_sqrt);
+    pApproxChebTab = create_tab("Метод Чебышева", pApproxTab, 3, approx_cheb_option_list,  APPROX_CHEB_TAB);
+
+    notlinear_option_list = malloc(sizeof(option*)*2);
+    notlinear_option_list[0] = create_option("Метод дихотомии", (pointer_func) bisection);
+    notlinear_option_list[1] = create_option("Метод хорд", (pointer_func) chord_method);
+    pNotLinearTab = create_tab("Нелинейные уравнения", pDefaultTab, 2, notlinear_option_list,  NOTLINEAR_TAB);
 
 
     //Где то тут нужно прописывать все остальные вкалдки
 
-
-
     pDefaultTab->options_list[0]->next_tab = pIntegTab;  //Завершаем связть между вкладками (До этого там был поинтер NULL)
     pDefaultTab->options_list[1]->next_tab = pDiffTab;
+    pDefaultTab->options_list[2]->next_tab = pApproxTab;
+    pDefaultTab->options_list[3]->next_tab = pNotLinearTab;
+    
     pIntegTab->options_list[0]->next_tab = pConstIntegTab;
     pIntegTab->options_list[1]->next_tab = pDynaicIntegTab;
     pIntegTab->options_list[2]->next_tab = pMultipleIntegTab;
+    
     pDiffTab->options_list[0]->next_tab = pDiffSimpleTab;
     pDiffTab->options_list[1]->next_tab = pDiffSystemTab;
+    
+    pApproxTab->options_list[0]->next_tab = pApproxChebTab;
 
     menu *pM = NULL; //Создание меню (По сути контроллер, который отвечает за то какая вкладка должна отображаться, и в какую передается пользовательский инпут)
     pM = malloc(sizeof(menu));
@@ -197,6 +232,9 @@ menu* create_menu(){
     pM->list_of_tabs[pMultipleIntegTab->id] = pMultipleIntegTab;
     pM->list_of_tabs[pDiffSimpleTab->id] = pDiffSimpleTab;
     pM->list_of_tabs[pDiffSystemTab->id] = pDiffSystemTab;
+    pM->list_of_tabs[pApproxTab->id] = pApproxTab;
+    pM->list_of_tabs[pApproxChebTab->id] = pApproxChebTab;
+    pM->list_of_tabs[pNotLinearTab->id] = pNotLinearTab;
     pM->amount_of_tabs = AMOUNT_OF_TABS;    //Та же херь, что и с количеством опций во вкладках, длину динамического массива тупа не найти
     pM->current_tab = pM->list_of_tabs[0];
     pM->return_button = create_option("Назад", open_prev_tab);

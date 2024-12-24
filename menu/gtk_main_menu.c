@@ -113,6 +113,12 @@ create_submenu( GtkWidget *button ,
   case DIFF_SYSTEM_TAB:
     new_input_tab = new_diff_system_menu(converted_data->function);
     break;
+  case APPROX_CHEB_TAB:
+    new_input_tab = new_approx_cheb_menu(converted_data->function);
+    break;
+  case NOTLINEAR_TAB:
+    new_input_tab = new_notlinear_menu(converted_data->function);
+    break;
   default:
     g_print("WARNING : invalid tab type %d\n",type);
     break;
@@ -125,9 +131,10 @@ create_submenu( GtkWidget *button ,
   }
 }
 
+
 void 
 display_tab( GtkWidget *button,
-             gpointer data )
+             gpointer   data )
 {
   CallbackSwapData *converted_data = (CallbackSwapData *) data;
 
@@ -195,7 +202,7 @@ static void
 activate (GtkApplication *app,
           gpointer        user_data)
 {
-  GtkWidget *start_window;
+  GtkWidget* start_window       = NULL;
   GtkWidget *window_box         = gtk_box_new(GTK_ORIENTATION_VERTICAL,5);
   garbage_collector             = malloc(sizeof(CallbackData      ));
   swap_garbage_collector        = malloc(sizeof(CallbackSwapData  ));

@@ -3,6 +3,46 @@
 #include "menu.h"
 
 void
+notlinear_methods( GtkWidget *button,
+                   gpointer data)
+{
+  NotlinearCalcData *converted_data  = (NotlinearCalcData*) data;
+  notlinear_calc calculation_function     = (notlinear_calc) converted_data->function;
+  
+  const gchar *bottom_limit_input = gtk_editable_get_text(GTK_EDITABLE(converted_data->bottom_limit   ));
+  const gchar *top_limit_input    = gtk_editable_get_text(GTK_EDITABLE(converted_data->top_limit      ));
+  const gchar *iterations_input   = gtk_editable_get_text(GTK_EDITABLE(converted_data->iteration_limit));
+
+  double bottom_lim = g_ascii_strtod(bottom_limit_input ,NULL);
+  double top_lim    = g_ascii_strtod(top_limit_input    ,NULL);
+  double iter_lim   = g_ascii_strtod(iterations_input   ,NULL);
+
+  double result = calculation_function(bottom_lim,top_lim,iter_lim);
+  
+  gchar *result_str = g_strdup_printf("   Result: %.6f",result);
+  gtk_label_set_text(GTK_LABEL(converted_data->result_output),result_str);
+}
+
+void
+approx_cheb( GtkWidget *button,
+                  gpointer data)
+{
+  ChebyshevCalcData *converted_data = (ChebyshevCalcData*) data;
+  cheb_func calculation_function     = (cheb_func) converted_data->function;
+  
+  const gchar *x = gtk_editable_get_text(GTK_EDITABLE(converted_data->x   ));
+  const gchar *e    = gtk_editable_get_text(GTK_EDITABLE(converted_data->e      ));
+
+  double num_x = g_ascii_strtod(x ,NULL);
+  double num_e    = g_ascii_strtod(e    ,NULL);
+
+  double result = calculation_function(num_x,num_e);
+  
+  gchar *result_str = g_strdup_printf("   Result: %.6f",result);
+  gtk_label_set_text(GTK_LABEL(converted_data->result_output),result_str);
+}
+
+void
 diff_system_callback( GtkWidget *button,
                       gpointer data    )
 {
@@ -377,6 +417,85 @@ GtkWidget
   args->result_output     = result;
 
   g_signal_connect(calculate_button,"clicked",G_CALLBACK(diff_system_callback),(gpointer) args);
+
+  return grid_container;
+}
+
+GtkWidget 
+*new_approx_cheb_menu( pointer_func func )
+{
+  GtkWidget *grid_container     = gtk_grid_new();
+  GtkWidget *x_entry = gtk_entry_new();
+  GtkWidget *e_entry    = gtk_entry_new();
+
+  GtkWidget *calculate_button   = gtk_button_new_with_label("Вычислить");
+
+  GtkWidget *x_label = gtk_label_new(" X: ");
+  GtkWidget *e_label    = gtk_label_new(" E: ");
+  GtkWidget *result_label       = gtk_label_new("   Result: ");
+
+  GtkWidget *blank_label        = gtk_label_new("");
+
+  gtk_grid_attach(GTK_GRID(grid_container),x_entry, 1,0,1,1);
+  gtk_grid_attach(GTK_GRID(grid_container),e_entry   , 1,1,1,1);
+  gtk_grid_attach(GTK_GRID(grid_container),result_label      , 2,0,2,1);
+
+  gtk_grid_attach(GTK_GRID(grid_container),x_label, 0,0,1,1);
+  gtk_grid_attach(GTK_GRID(grid_container),e_label   , 0,1,1,1);
+  
+  gtk_grid_attach(GTK_GRID(grid_container),blank_label       , 0,4,4,1);
+  gtk_grid_attach(GTK_GRID(grid_container),calculate_button  , 1,5,2,1);
+
+  ChebyshevCalcData *args = malloc(sizeof(ChebyshevCalcData));
+  args->x               = x_entry;
+  args->e               = e_entry;
+  args->function        = func;
+  args->result_output   = result_label;
+
+  g_signal_connect(calculate_button,"clicked",G_CALLBACK(approx_cheb),(gpointer) args);
+
+  return grid_container;
+}
+
+GtkWidget 
+*new_notlinear_menu( pointer_func func )
+{
+  GtkWidget *grid_container     = gtk_grid_new();
+  GtkWidget *bottom_limit_entry = gtk_entry_new();
+  GtkWidget *top_limit_entry    = gtk_entry_new();
+  GtkWidget *iterations_entry   = gtk_entry_new();
+
+  GtkWidget *calculate_button   = gtk_button_new_with_label("Вычислить");
+
+  GtkWidget *function_label     = gtk_label_new("   Function: x^3 - 12*x - 8");
+  GtkWidget *bottom_limit_label = gtk_label_new(" A: ");
+  GtkWidget *top_limit_label    = gtk_label_new(" B: ");
+  GtkWidget *iterations_label   = gtk_label_new(" E: ");
+  GtkWidget *result_label       = gtk_label_new("   Result: ");
+
+  GtkWidget *blank_label        = gtk_label_new("");
+
+  gtk_grid_attach(GTK_GRID(grid_container),bottom_limit_entry, 1,0,1,1);
+  gtk_grid_attach(GTK_GRID(grid_container),function_label    , 2,0,1,1);
+  gtk_grid_attach(GTK_GRID(grid_container),top_limit_entry   , 1,1,1,1);
+  gtk_grid_attach(GTK_GRID(grid_container),result_label      , 2,1,2,1);
+  gtk_grid_attach(GTK_GRID(grid_container),iterations_entry  , 1,2,1,1);
+
+  gtk_grid_attach(GTK_GRID(grid_container),bottom_limit_label, 0,0,1,1);
+  gtk_grid_attach(GTK_GRID(grid_container),top_limit_label   , 0,1,1,1);
+  gtk_grid_attach(GTK_GRID(grid_container),iterations_label  , 0,2,1,1);
+  
+  gtk_grid_attach(GTK_GRID(grid_container),blank_label       , 0,4,4,1);
+  gtk_grid_attach(GTK_GRID(grid_container),calculate_button  , 1,5,2,1);
+
+  NotlinearCalcData *args = malloc(sizeof(NotlinearCalcData));
+  args->bottom_limit    = bottom_limit_entry;
+  args->top_limit       = top_limit_entry;
+  args->iteration_limit = iterations_entry;
+  args->function        = func;
+  args->result_output   = result_label;
+
+  g_signal_connect(calculate_button,"clicked",G_CALLBACK(notlinear_methods),(gpointer) args);
 
   return grid_container;
 }

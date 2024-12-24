@@ -5,6 +5,8 @@
 #define MENU
 
 typedef EulerSystemAns (*calc_diff_system)(double a, double b, double h, double x0, double y0, double z0);
+typedef double (*notlinear_calc)(double a, double b, double e);
+typedef double (*cheb_func)(double x, double e);
 typedef double (*calc_diff)(double a, double b, int n, double x0, double y0);
 typedef double(*calc_func)(double min, double max, int n);
 typedef double(*dynamic_integ)(double min, double max, double acc);

@@ -51,6 +51,21 @@ typedef struct DiffSystemCalcData{
   pointer_func function;
 }DiffSystemCalcData;
 
+typedef struct ChebyshevCalcData{
+  GtkWidget *x;
+  GtkWidget *e;
+  GtkWidget *result_output;
+  pointer_func function;
+}ChebyshevCalcData;
+
+typedef struct NotlinearCalcData{
+  GtkWidget *bottom_limit;
+  GtkWidget *top_limit;
+  GtkWidget *iteration_limit;
+  GtkWidget *result_output;
+  pointer_func function;
+}NotlinearCalcData;
+
 void        const_step_integ(GtkWidget *button, gpointer data);
 void        dynamic_step_integ(GtkWidget *button, gpointer data);
 void        multi_integ(GtkWidget *button, gpointer data);
