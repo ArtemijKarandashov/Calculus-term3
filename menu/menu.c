@@ -31,6 +31,7 @@
 
 #include "../math/approx/Cheb.c"
 #include "../math/approx/Cheb.h"
+#include "../math/approx/Iter.c"
 
 #include "../math/notlinear/Diho.c"
 #include "../math/notlinear/Chord.c"
@@ -127,6 +128,7 @@ menu* create_menu(){
     tab *pConstDiffTab      = NULL;
     tab *pApproxTab         = NULL;
     tab *pApproxChebTab     = NULL;
+    tab *pApproxIterTab     = NULL;
     tab *pNotLinearTab      = NULL;
 
     option **defult_tab_option_list     = NULL; //Создание опций для вкладки
@@ -139,6 +141,7 @@ menu* create_menu(){
     option **diff_system_options_list   = NULL;
     option **approx_options_list        = NULL;
     option **approx_cheb_option_list    = NULL;
+    option **approx_iter_option_list    = NULL;
     option **notlinear_option_list      = NULL;
 
     defult_tab_option_list = malloc(sizeof(option*)*4);
@@ -185,15 +188,20 @@ menu* create_menu(){
     diff_system_options_list[0] = create_option("Систеама, решенная методом Эйлера", (pointer_func) euler_system);
     pDiffSystemTab = create_tab("Системы дифференциальных уравнений", pDiffTab, 1, diff_system_options_list,  DIFF_SYSTEM_TAB);
 
-    approx_options_list = malloc(sizeof(option*));
+    approx_options_list = malloc(sizeof(option*)*2);
     approx_options_list[0] = create_option("Метод Чебышева", open_next_tab);
-    pApproxTab = create_tab("Приблизительные вычисления элементарных функций", pDefaultTab, 1, approx_options_list,  -1);
+    approx_options_list[1] = create_option("Метод Итераций", open_next_tab);
+    pApproxTab = create_tab("Приблизительные вычисления элементарных функций", pDefaultTab, 2, approx_options_list,  -1);
     
     approx_cheb_option_list = malloc(sizeof(option*) * 3);
     approx_cheb_option_list[0] = create_option("Экспонента методом Чебышева", (pointer_func) chebyshev_exp);
     approx_cheb_option_list[1] = create_option("Синус методом Чебышева", (pointer_func) chebyshev_sin);
     approx_cheb_option_list[2] = create_option("Обратный квадратный корень методом Чебышева", (pointer_func) chebyshev_inv_sqrt);
     pApproxChebTab = create_tab("Метод Чебышева", pApproxTab, 3, approx_cheb_option_list,  APPROX_CHEB_TAB);
+
+    approx_iter_option_list = malloc(sizeof(option*) * 3);
+    approx_iter_option_list[0] = create_option("Квадратный корень", (pointer_func) sqrt_iter);
+    pApproxIterTab = create_tab("Метод Итераций", pApproxTab, 1, approx_iter_option_list,  APPROX_CHEB_TAB);
 
     notlinear_option_list = malloc(sizeof(option*)*2);
     notlinear_option_list[0] = create_option("Метод дихотомии", (pointer_func) bisection);
@@ -216,6 +224,7 @@ menu* create_menu(){
     pDiffTab->options_list[1]->next_tab = pDiffSystemTab;
     
     pApproxTab->options_list[0]->next_tab = pApproxChebTab;
+    pApproxTab->options_list[1]->next_tab = pApproxIterTab;
 
     menu *pM = NULL; //Создание меню (По сути контроллер, который отвечает за то какая вкладка должна отображаться, и в какую передается пользовательский инпут)
     pM = malloc(sizeof(menu));
@@ -234,6 +243,7 @@ menu* create_menu(){
     pM->list_of_tabs[pDiffSystemTab->id] = pDiffSystemTab;
     pM->list_of_tabs[pApproxTab->id] = pApproxTab;
     pM->list_of_tabs[pApproxChebTab->id] = pApproxChebTab;
+    pM->list_of_tabs[pApproxIterTab->id] = pApproxIterTab;
     pM->list_of_tabs[pNotLinearTab->id] = pNotLinearTab;
     pM->amount_of_tabs = AMOUNT_OF_TABS;    //Та же херь, что и с количеством опций во вкладках, длину динамического массива тупа не найти
     pM->current_tab = pM->list_of_tabs[0];
