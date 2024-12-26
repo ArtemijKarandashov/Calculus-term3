@@ -34,6 +34,7 @@
 #include "../math/approx/Iter.c"
 
 #include "../math/notlinear/Diho.c"
+#include "../math/notlinear/Newton.c"
 #include "../math/notlinear/Chord.c"
 
 #define AMOUNT_OF_TABS      9 //При добавлении новых вкладок, нужно не забывать изменить это значение
@@ -203,10 +204,11 @@ menu* create_menu(){
     approx_iter_option_list[0] = create_option("Квадратный корень", (pointer_func) sqrt_iter);
     pApproxIterTab = create_tab("Метод Итераций", pApproxTab, 1, approx_iter_option_list,  APPROX_CHEB_TAB);
 
-    notlinear_option_list = malloc(sizeof(option*)*2);
-    notlinear_option_list[0] = create_option("Метод дихотомии", (pointer_func) bisection);
-    notlinear_option_list[1] = create_option("Метод хорд", (pointer_func) chord_method);
-    pNotLinearTab = create_tab("Нелинейные уравнения", pDefaultTab, 2, notlinear_option_list,  NOTLINEAR_TAB);
+    notlinear_option_list = malloc(sizeof(option*)*3);
+    notlinear_option_list[0] = create_option("Метод Ньютона", (pointer_func) newton);
+    notlinear_option_list[1] = create_option("Метод дихотомии", (pointer_func) bisection);
+    notlinear_option_list[2] = create_option("Метод хорд", (pointer_func) chord_method);
+    pNotLinearTab = create_tab("Нелинейные уравнения", pDefaultTab, 3, notlinear_option_list,  NOTLINEAR_TAB);
 
 
     //Где то тут нужно прописывать все остальные вкалдки
